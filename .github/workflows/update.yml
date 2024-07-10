@@ -34,7 +34,7 @@ jobs:
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /etc/mysql /usr/local/lib/android /opt/ghc
           sudo -E apt -y update
-          sudo -E apt -y install go libime curl
+          sudo -E apt -y install golang libime curl
           sudo -E apt -y autoremove --purge
           sudo -E apt -y clean
           echo "DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
@@ -69,3 +69,12 @@ jobs:
           tag: v${{ env.DATE }}
           token: ${{ secrets.RELEASES_TOKEN }}
           artifacts: out/zenth.*
+
+      - name: Telegram notification
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            词典更新失败，请查明原因
