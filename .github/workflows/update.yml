@@ -1,0 +1,71 @@
+name: Update Dictionary
+on:
+  schedule:
+    - cron: 0 20 1 * *
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled'
+        required: false
+        default: false
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Delete older workflow runs and artifacts
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 3
+          keep_minimum_runs: 3
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Initialization Environment
+        run: |
+          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /etc/mysql /usr/local/lib/android /opt/ghc
+          sudo -E apt -y update
+          sudo -E apt -y install go libime curl
+          sudo -E apt -y autoremove --purge
+          sudo -E apt -y clean
+          echo "DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
+
+      - name: Setup tmate session
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Downloads scels
+        run : |
+          mkdir scel
+          for link in $(cat list.txt); do
+            name=$(echo $link | awk -F '&|=' '{print $4}')
+            curl $link -o scel/${name}.scel
+          done
+
+      - name: Transform scels files
+        run: |
+          go run main.go
+
+      - name: Transform txt files
+        run : |
+          cd out
+          sort -u all.txt > zenth.txt
+          libime_pinyindict zenth.txt zenth.dict
+
+      - name: Upload Dictionary To Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          removeArtifacts: true
+          tag: v${{ env.DATE }}
+          token: ${{ secrets.RELEASES_TOKEN }}
+          artifacts: out/zenth.*
