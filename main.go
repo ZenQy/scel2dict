@@ -97,7 +97,7 @@ func getRecords(b *bytes.Reader, fileSize int64, hzOffset int64, pyMap map[uint1
 
 			// 跳过 ext_len 和 ext 共 12 个字节
 			b.Seek(12, io.SeekCurrent)
-			records = append(records, fmt.Sprintf("%s %s 1", wordStr, pyStr))
+			records = append(records, fmt.Sprintf("%s\t%s\t1", wordStr, pyStr))
 		}
 	}
 	return records
