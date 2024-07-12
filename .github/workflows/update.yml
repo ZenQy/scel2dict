@@ -59,8 +59,9 @@ jobs:
         run : |
           cd out
           sort -u all.txt > zenith.txt
-          head -5 zenith.txt
-          libime_pinyindict zenith.txt zenth.dict
+          sed -i 's/lue/lve/g'  zenith.txt
+          sed -i 's/nue/nve/g'  zenith.txt
+          libime_pinyindict zenith.txt zenith.dict
 
       - name: Upload Dictionary To Release
         uses: ncipollo/release-action@v1
@@ -69,7 +70,7 @@ jobs:
           removeArtifacts: true
           tag: v${{ env.DATE }}
           token: ${{ secrets.RELEASES_TOKEN }}
-          artifacts: out/zenth.*
+          artifacts: out/zenith.*
 
       - name: Telegram notification
         if: failure()
