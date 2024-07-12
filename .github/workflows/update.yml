@@ -71,12 +71,12 @@ jobs:
           tag: v${{ env.DATE }}
           artifacts: out/zenith.*
 
-    - name: Remove old Releases
-      uses: dev-drprasad/delete-older-releases@v0.2.1
-      if: success()
-      with:
-        keep_latest: 3
-        delete_tags: true
+      - name: Remove old Releases
+        uses: dev-drprasad/delete-older-releases@v0.2.1
+        if: success()
+        with:
+          keep_latest: 3
+          delete_tags: true
 
       - name: Telegram notification
         if: failure()
