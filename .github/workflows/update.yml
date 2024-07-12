@@ -69,8 +69,14 @@ jobs:
           allowUpdates: true
           removeArtifacts: true
           tag: v${{ env.DATE }}
-          token: ${{ secrets.RELEASES_TOKEN }}
           artifacts: out/zenith.*
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.2.1
+      if: success()
+      with:
+        keep_latest: 3
+        delete_tags: true
 
       - name: Telegram notification
         if: failure()
