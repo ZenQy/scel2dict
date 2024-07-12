@@ -59,6 +59,7 @@ jobs:
         run : |
           cd out
           sort -u all.txt > zenth.txt
+          head -5 zenith.txt
           libime_pinyindict zenth.txt zenth.dict
 
       - name: Upload Dictionary To Release
