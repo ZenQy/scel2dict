@@ -58,9 +58,9 @@ jobs:
       - name: Transform txt files
         run : |
           cd out
-          sort -u all.txt > zenth.txt
+          sort -u all.txt > zenith.txt
           head -5 zenith.txt
-          libime_pinyindict zenth.txt zenth.dict
+          libime_pinyindict zenith.txt zenth.dict
 
       - name: Upload Dictionary To Release
         uses: ncipollo/release-action@v1
