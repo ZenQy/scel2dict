@@ -20,8 +20,6 @@ jobs:
       - name: Delete older workflow runs and artifacts
         uses: Mattraks/delete-workflow-runs@v2
         with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
           retain_days: 3
           keep_minimum_runs: 3
 
@@ -80,12 +78,3 @@ jobs:
           delete_tags: true
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-      - name: Telegram notification
-        if: failure()
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            词典更新失败，请查明原因
