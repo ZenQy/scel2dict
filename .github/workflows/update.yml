@@ -51,7 +51,7 @@ jobs:
           rm go.*
           go mod init main
           go mod tidy
-          go run main.go
+          go run *.go
           echo UPDATE=$(cat dict.json | grep true | wc -l) >> $GITHUB_ENV
 
       - name: Transform txt files
