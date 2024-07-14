@@ -62,14 +62,14 @@ jobs:
           echo UPDATE=$(cat dict.json | grep true | wc -l) >> $GITHUB_ENV
 
       - name: Transform txt files
-        if: ${{ env.UPDATE }}
+        if: ${{ env.UPDATE != '0' }}
         run : |
           cd out
           sort -u all.txt > zenith.txt
           libime_pinyindict zenith.txt zenith.dict
 
       - name: Commit and Push
-        if: ${{ env.UPDATE }}
+        if: ${{ env.UPDATE != '0' }}
         run: |
           git config --global user.name 'Automation - ZenQy'
           git config --global user.email 'zenqy.qin@gmail.com'
@@ -77,7 +77,7 @@ jobs:
           || (git commit -am "Update Dictionaries - Automated Commit" && git push || git stash)
 
       - name: Upload Dictionary To Release
-        if: ${{ env.UPDATE }}
+        if: ${{ env.UPDATE != '0' }}
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
