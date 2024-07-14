@@ -70,10 +70,10 @@ jobs:
           artifacts: out/zenith.*
 
       - name: Remove old Releases
-        uses: dev-drprasad/delete-older-releases@v0.2.1
+        uses: dev-drprasad/delete-older-releases@v0.3.4
         if: success()
         with:
           keep_latest: 3
           delete_tags: true
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
