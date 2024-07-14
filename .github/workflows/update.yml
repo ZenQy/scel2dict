@@ -28,6 +28,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: SSH Private Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Initialization Environment
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /etc/mysql /usr/local/lib/android /opt/ghc
@@ -41,27 +46,31 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         uses: mxschmitt/action-tmate@v3
 
-      - name: Downloads scels
-        run : |
-          mkdir scel
-          for link in $(cat list.txt); do
-            name=$(echo $link | awk -F '&|=' '{print $4}')
-            curl $link -o scel/${name}.scel
-          done
-
       - name: Transform scels files
         run: |
+          rm go.*
+          go mod init main
+          go mod tidy
           go run main.go
+          echo UPDATE=$(cat dict.json | grep true | wc -l) >> $GITHUB_ENV
 
       - name: Transform txt files
+        if: ${{ env.UPDATE }}
         run : |
           cd out
           sort -u all.txt > zenith.txt
-          sed -i 's/lue/lve/g'  zenith.txt
-          sed -i 's/nue/nve/g'  zenith.txt
           libime_pinyindict zenith.txt zenith.dict
 
+      - name: Commit and Push
+        if: ${{ env.UPDATE }}
+        run: |
+          git config --global user.name 'Automation - ZenQy'
+          git config --global user.email 'zenqy.qin@gmail.com'
+          git diff-index --quiet HEAD \
+          || (git commit -am "Update Dictionaries - Automated Commit" && git push || git stash)
+
       - name: Upload Dictionary To Release
+        if: ${{ env.UPDATE }}
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
