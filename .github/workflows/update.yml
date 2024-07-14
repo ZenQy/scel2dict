@@ -67,7 +67,6 @@ jobs:
           allowUpdates: true
           removeArtifacts: true
           tag: v${{ env.DATE }}
-          token: ${{ secrets.TOKEN }}
           artifacts: out/zenith.*
 
       - name: Remove old Releases
