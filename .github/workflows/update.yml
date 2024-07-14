@@ -37,10 +37,17 @@ jobs:
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /etc/mysql /usr/local/lib/android /opt/ghc
           sudo -E apt -y update
-          sudo -E apt -y install golang libime-bin curl
+          sudo -E apt -y install libime-bin wget
           sudo -E apt -y autoremove --purge
           sudo -E apt -y clean
           echo "DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
+          ## 
+          gofile=go1.22.5.linux-amd64.tar.gz
+          wget https://go.dev/dl/$gofile
+          sudo rm -rf /usr/local/go
+          sudo tar -C /usr/local -xzf $gofile
+          export PATH=$PATH:/usr/local/go/bin
+          go version
 
       - name: Setup tmate session
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
