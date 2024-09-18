@@ -42,7 +42,7 @@ jobs:
           sudo -E apt -y clean
           echo "DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
           ## 
-          gofile=go1.22.5.linux-amd64.tar.gz
+          gofile=go1.22.6.linux-amd64.tar.gz
           wget https://go.dev/dl/$gofile
           sudo rm -rf /usr/local/go
           sudo tar -C /usr/local -xzf $gofile
