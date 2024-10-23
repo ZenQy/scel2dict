@@ -32,13 +32,14 @@ jobs:
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /etc/mysql /usr/local/lib/android /opt/ghc
           sudo -E apt -y update
-          sudo -E apt -y install libime-bin wget
+          sudo -E apt -y install libime-bin wget curl
           sudo -E apt -y autoremove --purge
           sudo -E apt -y clean
           echo "DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
-          ## 
-          gofile=go1.22.6.linux-amd64.tar.gz
-          wget https://go.dev/dl/$gofile
+          ##
+          url=https://go.dev/dl/
+          gofile=$(curl $url | grep "download downloadBox" | grep linux | awk -F '"|/' '{print $6}')
+          wget $url$gofile
           sudo rm -rf /usr/local/go
           sudo tar -C /usr/local -xzf $gofile
           export PATH=$PATH:/usr/local/go/bin
@@ -48,10 +49,17 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         uses: mxschmitt/action-tmate@v3
 
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Transform scels files
         run: |
-          rm go.*
-          go mod init main
           go mod tidy
           go run *.go
           echo UPDATE=$(cat dict.json | grep true | wc -l) >> $GITHUB_ENV
