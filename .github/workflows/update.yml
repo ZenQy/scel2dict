@@ -31,37 +31,19 @@ jobs:
       - name: Initialization Environment
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /etc/mysql /usr/local/lib/android /opt/ghc
-          sudo -E apt -y update
-          sudo -E apt -y install libime-bin wget curl
-          sudo -E apt -y autoremove --purge
-          sudo -E apt -y clean
+          sudo -E apt-get -y update
+          sudo -E apt-get -y install libime-bin
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get -y clean
           echo "DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
-          ##
-          url=https://go.dev/dl/
-          gofile=$(curl $url | grep "download downloadBox" | grep linux | awk -F '"|/' '{print $6}')
-          wget $url$gofile
-          sudo rm -rf /usr/local/go
-          sudo tar -C /usr/local -xzf $gofile
-          export PATH=$PATH:/usr/local/go/bin
-          go version
 
       - name: Setup tmate session
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         uses: mxschmitt/action-tmate@v3
 
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Transform scels files
         run: |
-          go mod tidy
-          go run *.go
+          ./bin/scel2dict
           echo UPDATE=$(cat dict.json | grep true | wc -l) >> $GITHUB_ENV
 
       - name: Transform txt files
@@ -74,8 +56,8 @@ jobs:
       - name: Commit and Push
         if: ${{ env.UPDATE != '0' }}
         run: |
-          git config --global user.name 'Automation - ZenQy'
-          git config --global user.email 'zenqy.qin@gmail.com'
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git diff-index --quiet HEAD \
           || (git commit -am "Update Dictionaries - Automated Commit" && git push || git stash)
 
