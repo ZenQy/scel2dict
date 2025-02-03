@@ -9,10 +9,8 @@ import (
 )
 
 type Dict struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Date     string `json:"date"`
-	IsUpdate bool   `json:"is_update"`
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 func main() {
@@ -28,30 +26,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	for i := 0; i < len(dicts); i++ {
-		dicts[i].GetInfo()
-		if dicts[i].IsUpdate {
-			dicts[i].Download()
+	dirs := []string{"out", "scel"}
+	for _, dir := range dirs {
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			os.Mkdir(dir, os.ModePerm)
 		}
 	}
 
-	data, err = json.MarshalIndent(&dicts, "", "  ")
-	os.WriteFile("dict.json", data, 0o644)
+	for _, dict := range dicts {
+		dict.Download()
+	}
 
 	scelFiles, _ := filepath.Glob("scel/*.scel")
 	dictFile := "all.txt"
 	var dictFileContent []string
 
-	outDir := "out"
-	if _, err := os.Stat(outDir); os.IsNotExist(err) {
-		os.Mkdir(outDir, os.ModePerm)
-	}
-
 	for _, scelFile := range scelFiles {
 		records := getWordsFromSogouCellDict(scelFile)
 		fmt.Printf("%s: %d 个词\n", scelFile, len(records))
 
-		outFile := filepath.Join(outDir, strings.Replace(filepath.Base(scelFile), ".scel", ".txt", 1))
+		outFile := filepath.Join(dirs[0], strings.Replace(filepath.Base(scelFile), ".scel", ".txt", 1))
 		f, err := os.Create(outFile)
 		if err != nil {
 			fmt.Println("Error creating file:", err)
@@ -64,9 +58,9 @@ func main() {
 		fmt.Println(strings.Repeat("-", 80))
 	}
 
-	fmt.Printf("合并后 %s: %d 个词\n", dictFile, len(dictFileContent)-1)
+	fmt.Printf("合并后 %s: %d 个词\n", dictFile, len(dictFileContent))
 
-	dictFileOut := filepath.Join(outDir, dictFile)
+	dictFileOut := filepath.Join(dirs[0], dictFile)
 	fDict, err := os.Create(dictFileOut)
 	if err != nil {
 		fmt.Println("Error creating file:", err)

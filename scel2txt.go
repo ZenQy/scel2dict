@@ -29,6 +29,12 @@ func readUint16(b *bytes.Reader) uint16 {
 	return num
 }
 
+func readUint32(b *bytes.Reader) uint32 {
+	var num uint32
+	binary.Read(b, binary.LittleEndian, &num)
+	return num
+}
+
 func getHzOffset(b *bytes.Reader) int64 {
 	b.Seek(4, 0)
 	var mask byte
@@ -46,9 +52,11 @@ func getHzOffset(b *bytes.Reader) int64 {
 
 func getPyMap(b *bytes.Reader) map[uint16]string {
 	pyMap := make(map[uint16]string)
-	b.Seek(0x1540+4, 0)
-
-	for {
+	b.Seek(0x1540, 0)
+	pyTableLen := int(readUint16(b))
+	// 丢掉两个字节
+	b.Seek(2, 1)
+	for i := 0; i < pyTableLen; i++ {
 		pyIdx := readUint16(b)
 		pyLen := readUint16(b)
 		pyStr := readUtf16Str(b, -1, int(pyLen))
@@ -56,18 +64,18 @@ func getPyMap(b *bytes.Reader) map[uint16]string {
 		if _, ok := pyMap[pyIdx]; !ok {
 			pyMap[pyIdx] = pyStr
 		}
-
-		if pyStr == "zuo" {
-			break
-		}
 	}
 	return pyMap
 }
 
-func getRecords(b *bytes.Reader, fileSize int64, hzOffset int64, pyMap map[uint16]string) []string {
+func getRecords(b *bytes.Reader, hzOffset int64, pyMap map[uint16]string) []string {
+	b.Seek(0x120, 0)
+	dictLen := int(readUint32(b))
+
 	b.Seek(int64(hzOffset), io.SeekStart)
 	var records []string
-	for b.Size()-int64(b.Len()) != fileSize {
+
+	for index := 0; index < dictLen; index++ {
 		wordCount := readUint16(b)
 		pyIdxCount := int(readUint16(b) / 2)
 
@@ -76,8 +84,6 @@ func getRecords(b *bytes.Reader, fileSize int64, hzOffset int64, pyMap map[uint1
 			pyIdx := readUint16(b)
 			if py, ok := pyMap[pyIdx]; ok {
 				pySet[i] = py
-			} else {
-				return records
 			}
 		}
 		pyStr := strings.Join(pySet, "'")
@@ -94,6 +100,7 @@ func getRecords(b *bytes.Reader, fileSize int64, hzOffset int64, pyMap map[uint1
 			records = append(records, fmt.Sprintf("%s\t%s\t1", wordStr, pyStr))
 		}
 	}
+
 	return records
 }
 
@@ -107,8 +114,7 @@ func getWordsFromSogouCellDict(fname string) []string {
 	b := bytes.NewReader(data)
 	hzOffset := getHzOffset(b)
 	pyMap := getPyMap(b)
-	fileSize := int64(len(data))
-	words := getRecords(b, fileSize, hzOffset, pyMap)
+	words := getRecords(b, hzOffset, pyMap)
 
 	return words
 }
