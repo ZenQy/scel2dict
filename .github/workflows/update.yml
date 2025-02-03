@@ -34,11 +34,10 @@ jobs:
 
       - name: Initialization Environment
         run: |
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /etc/mysql /usr/local/lib/android /opt/ghc
-          sudo -E apt-get -y update
-          sudo -E apt-get -y install libime-bin
-          sudo -E apt-get -y autoremove --purge
-          sudo -E apt-get -y clean
+          sudo apt-get -y update
+          sudo apt-get -y install libime-bin
+          sudo apt-get -y autoremove --purge
+          sudo apt-get -y clean
           echo "DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
 
       - name: Transform scels files
