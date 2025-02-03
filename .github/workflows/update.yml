@@ -43,6 +43,8 @@ jobs:
 
       - name: Transform scels files
         run: |
+          ls bin/scel2dict
+          chmod +x bin/scel2dict
           ./bin/scel2dict
           echo UPDATE=$(cat dict.json | grep true | wc -l) >> $GITHUB_ENV
 
