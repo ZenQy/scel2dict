@@ -6,7 +6,7 @@ on:
     inputs:
       debug_enabled:
         type: boolean
-        description: 'Run the build with tmate debugging enabled'
+        description: "Run the build with tmate debugging enabled"
         required: false
         default: false
 env:
@@ -16,7 +16,6 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-
       - name: Delete older workflow runs and artifacts
         uses: Mattraks/delete-workflow-runs@v2
         with:
@@ -42,28 +41,15 @@ jobs:
 
       - name: Transform scels files
         run: |
-          ls bin/scel2dict
-          chmod +x bin/scel2dict
           ./bin/scel2dict
-          echo UPDATE=$(cat dict.json | grep true | wc -l) >> $GITHUB_ENV
 
       - name: Transform txt files
-        if: ${{ env.UPDATE != '0' }}
-        run : |
+        run: |
           cd out
           sort -u all.txt > zenith.txt
           libime_pinyindict zenith.txt zenith.dict
 
-      - name: Commit and Push
-        if: ${{ env.UPDATE != '0' }}
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git diff-index --quiet HEAD \
-          || (git commit -am "Update Dictionaries - Automated Commit" && git push || git stash)
-
       - name: Upload Dictionary To Release
-        if: ${{ env.UPDATE != '0' }}
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
